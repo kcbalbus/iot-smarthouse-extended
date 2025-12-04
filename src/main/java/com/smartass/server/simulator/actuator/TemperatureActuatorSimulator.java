@@ -7,9 +7,10 @@ import reactor.kafka.receiver.ReceiverOptions;
 
 @Component
 @Profile("simulator")
-public class WindowActuatorSimulator extends SimulatorActuatorBase {
+public class TemperatureActuatorSimulator extends SimulatorActuatorBase {
 
-    public WindowActuatorSimulator(ReceiverOptions<String, DeviceCommandDTO> baseReceiverOptions) {
-        super(baseReceiverOptions, "simulator-window-actuator-", "window-actuator-", "[ACTUATOR-WINDOW]");
+    public TemperatureActuatorSimulator(ReceiverOptions<String, DeviceCommandDTO> baseReceiverOptions) {
+        super(baseReceiverOptions, "simulator-temperature-actuator-", "sensor-", "[ACTUATOR-TEMPERATURE]");
     }
 }
+

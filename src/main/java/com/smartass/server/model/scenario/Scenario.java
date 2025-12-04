@@ -1,4 +1,4 @@
-package com.smartass.server.service.scenario;
+package com.smartass.server.model.scenario;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
