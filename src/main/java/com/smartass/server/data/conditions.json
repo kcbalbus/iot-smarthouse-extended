@@ -1,0 +1,27 @@
+{
+  "temperature-high": {
+    "deviceType": "temperature",
+    "parameter": "temperature",
+    "severity": "WARNING",
+    "operator": "GREATER_THAN",
+    "value": "30",
+    "description": "Temperature is too high!"
+  },
+  "temperature-low": {
+    "deviceType": "temperature",
+    "parameter": "temperature",
+    "severity": "WARNING",
+    "operator": "LESS_THAN",
+    "value": "0",
+    "description": "Temperature is too low!"
+  },
+  "smoke": {
+    "deviceType": "smoke",
+    "parameter": "alarmActive",
+    "severity": "CRITICAL",
+    "operator": "EQUALS",
+    "value": "ON",
+    "description": "The sensor has detected smoke!"
+  }
+}
+

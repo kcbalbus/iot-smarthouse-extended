@@ -1,0 +1,20 @@
+[
+  {
+    "id": "sc-1",
+    "name": "Smoke detected - open window & turn off lights",
+    "triggerType": "smoke",
+    "actions": [
+      {
+        "deviceTypePattern": "light-*",
+        "command": "set",
+        "value": "false"
+      },
+      {
+        "deviceTypePattern": "window-actuator-*",
+        "command": "open",
+        "value": "true"
+      }
+    ]
+  }
+]
+
