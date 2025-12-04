@@ -32,6 +32,7 @@ public class AlertRuleEngine {
                 .filter(condition -> evaluateSingleCondition(condition, data))
                 .map(condition -> new AlertDTO(
                         data.getDeviceId(),
+                        data.getType(),
                         condition.getSeverity(),
                         System.currentTimeMillis(),
                         condition.getDescription()
