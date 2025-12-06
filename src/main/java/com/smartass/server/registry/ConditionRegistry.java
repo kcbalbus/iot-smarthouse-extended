@@ -22,27 +22,101 @@ public class ConditionRegistry {
 
     public ConditionRegistry(AlertConditionValidator alertConditionValidator) {
         this.alertConditionValidator = alertConditionValidator;
+
+        //temperature
         conditions.put("temperature-high", new AlertCondition("temperature", "temperature",
-                AlertSeverity.WARNING, ComparisonOperator.GREATER_THAN, "15",
+                AlertSeverity.WARNING, ComparisonOperator.GREATER_THAN, "17",
                 "Temperature is too high!"));
-        conditions.put("temperature-low", new AlertCondition("temperature", "temperature",
-                AlertSeverity.WARNING, ComparisonOperator.LESS_THAN, "17",
+
+        conditions.put("temperature-temperature-critical", new AlertCondition(
+                        "temperature", "temperature",
+                        AlertSeverity.CRITICAL, ComparisonOperator.GREATER_THAN, "23",
+                        "Critical temperature! Immediate action required."));
+
+        conditions.put("temperature-temperature-low", new AlertCondition(
+                "temperature", "temperature",
+                AlertSeverity.WARNING, ComparisonOperator.LESS_THAN, "15",
                 "Temperature is too low!"));
-        conditions.put("light", new AlertCondition("light", "state", AlertSeverity.CRITICAL,
-                ComparisonOperator.EQUALS, "ON",
-                "Light switch should be on!"));
-        conditions.put("energy-high", new AlertCondition("energy", "currentPower",
-                AlertSeverity.WARNING, ComparisonOperator.GREATER_THAN, "300",
-                "Temperature is too low!"));
-        conditions.put("fridge-temperature-high", new AlertCondition("fridge", "temperature",
-                AlertSeverity.WARNING, ComparisonOperator.GREATER_THAN, "12",
-                "Temperature in fridge is too high!"));
-        conditions.put("smoke", new AlertCondition("smoke", "alarmActive", AlertSeverity.CRITICAL,
-                ComparisonOperator.EQUALS, "ON",
-                "The sensor has detected smoke!"));
-        conditions.put("fridge-temperature-low", new AlertCondition("fridge", "temperature",
-                AlertSeverity.WARNING, ComparisonOperator.GREATER_THAN, "1",
-                "Temperature in fridge is too low!"));
+
+
+        conditions.put("temperature-temperature-freeze", new AlertCondition(
+                "temperature", "temperature",
+                AlertSeverity.CRITICAL, ComparisonOperator.LESS_THAN, "13",
+                "Critical low temperature!"));
+
+
+
+        conditions.put("temperature-humidity-low", new AlertCondition(
+                "temperature", "humidity",
+                AlertSeverity.WARNING, ComparisonOperator.LESS_THAN, "30",
+                "Relative humidity is too low!"));
+
+        conditions.put("temperature-humidity-high", new AlertCondition(
+                "temperature", "humidity",
+                AlertSeverity.WARNING, ComparisonOperator.GREATER_THAN, "70",
+                "Relative humidity is too high!"));
+
+        //light
+        conditions.put("light-brightness-low", new AlertCondition(
+                "light", "brightness",
+                AlertSeverity.WARNING, ComparisonOperator.LESS_THAN, "5",
+                "Brightness is very low!"));
+
+        //energy
+        conditions.put("energy-currentPower-high", new AlertCondition(
+                "energy", "currentPower",
+                AlertSeverity.WARNING, ComparisonOperator.GREATER_THAN, "150",
+                "Current power consumption is too high!"));
+
+
+        conditions.put("energy-currentPower-critical", new AlertCondition(
+                "energy", "currentPower",
+                AlertSeverity.CRITICAL, ComparisonOperator.GREATER_THAN, "300",
+                "Critical power consumption!"));
+
+        //motion
+        conditions.put("motion-motionDetected", new AlertCondition(
+                "motion", "motionDetected",
+                AlertSeverity.WARNING, ComparisonOperator.EQUALS, "true",
+                "Motion detected!"));
+
+        //smoke
+        conditions.put("smoke-alarmActive", new AlertCondition(
+                "smoke", "alarmActive",
+                AlertSeverity.CRITICAL, ComparisonOperator.EQUALS, "true",
+                "Smoke/Fire detected!"));
+
+        conditions.put("smoke-battery-low", new AlertCondition(
+                "smoke", "batteryLevel",
+                AlertSeverity.WARNING, ComparisonOperator.LESS_THAN, "20",
+                "Smoke detector battery is low!"));
+
+        //fridge
+        conditions.put("fridge-temperature-high", new AlertCondition(
+                "fridge", "temperature",
+                AlertSeverity.WARNING, ComparisonOperator.GREATER_THAN, "8",
+                "Temperature in the fridge is too high!"));
+
+        conditions.put("fridge-temperature-critical", new AlertCondition(
+                "fridge", "temperature",
+                AlertSeverity.CRITICAL, ComparisonOperator.GREATER_THAN, "12",
+                "Critical fridge temperature! Food may spoil."));
+
+        conditions.put("fridge-temperature-low", new AlertCondition(
+                "fridge", "temperature",
+                AlertSeverity.WARNING, ComparisonOperator.LESS_THAN, "0",
+                "Temperature in the fridge is too low!"));
+
+        conditions.put("fridge-temperature-freeze", new AlertCondition(
+                "fridge", "temperature",
+                AlertSeverity.CRITICAL, ComparisonOperator.LESS_THAN, "-10",
+                "Fridge temperature extremely low (freezing)!"));
+
+        conditions.put("fridge-doorOpen", new AlertCondition(
+                "fridge", "doorOpen",
+                AlertSeverity.WARNING, ComparisonOperator.EQUALS, "true",
+                "Fridge door is open!"));
+
 
     }
 
