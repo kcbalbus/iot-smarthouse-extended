@@ -50,6 +50,13 @@ public class ScenarioService {
             log.info("Looking up scenarios for trigger type='{}' (alert={})", type, alert != null ? alert.getDescription() : "<none>");
 
             registry.findByTriggerType(type).forEach(scenario -> {
+                if (scenario.getTriggerConditionId() != null && alert != null) {
+                    if (alert.getConditionId() == null || !alert.getConditionId().equals(scenario.getTriggerConditionId())) {
+                        log.debug("Skipping scenario '{}' because triggerConditionId '{}' doesn't match alert.conditionId '{}'", scenario.getId(), scenario.getTriggerConditionId(), alert.getConditionId());
+                        return;
+                    }
+                }
+
                 log.info("Matched scenario '{}': {} actions", scenario.getName(), scenario.getActions() != null ? scenario.getActions().size() : 0);
                 if (scenario.getActions() == null) return;
                 scenario.getActions().forEach(action -> {

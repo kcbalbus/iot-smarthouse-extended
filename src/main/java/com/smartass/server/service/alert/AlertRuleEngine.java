@@ -3,19 +3,19 @@ package com.smartass.server.service.alert;
 import com.smartass.server.model.alert.AlertDTO;
 import com.smartass.server.model.alert.AlertCondition;
 import com.smartass.server.model.alert.ComparisonOperator;
-import com.smartass.server.model.alert.AlertSeverity;
-import com.smartass.server.model.alert.AlertType;
 import com.smartass.server.model.device.DeviceData;
 import com.smartass.server.registry.ConditionRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @Component
 public class AlertRuleEngine {
+
+    private static final Logger log = LoggerFactory.getLogger(AlertRuleEngine.class);
 
     private final ConditionRegistry conditionRegistry;
 
@@ -28,15 +28,22 @@ public class AlertRuleEngine {
         String deviceType = data.getType();
         return conditionRegistry.getAllConditions().entrySet().stream()
                 .filter(entry -> entry.getKey().startsWith(deviceType))
-                .map(Map.Entry::getValue)
-                .filter(condition -> evaluateSingleCondition(condition, data))
-                .map(condition -> new AlertDTO(
-                        data.getDeviceId(),
-                        data.getType(),
-                        condition.getSeverity(),
-                        System.currentTimeMillis(),
-                        condition.getDescription()
-                ))
+                .filter(entry -> evaluateSingleCondition(entry.getValue(), data))
+                .map(entry -> {
+                    String conditionId = entry.getKey();
+                    AlertCondition cond = entry.getValue();
+                    log.info("[AlertRuleEngine] Matched condition '{}' (deviceType={}, parameter={}, value={}) for device={}",
+                            conditionId, cond.getDeviceType(), cond.getParameter(), cond.getValue(), data.getDeviceId());
+
+                    return new AlertDTO(
+                            data.getDeviceId(),
+                            data.getType(),
+                            entry.getValue().getSeverity(),
+                            System.currentTimeMillis(),
+                            entry.getValue().getDescription(),
+                            conditionId
+                    );
+                })
                 .toList();
     }
 
@@ -48,7 +55,7 @@ public class AlertRuleEngine {
             return compareValues(actualValue, condition.getValue(), condition.getOperator());
 
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            System.err.println("Alert evaluation failed: " + e.getMessage());
+            log.debug("Alert evaluation failed for parameter '{}' on data class {}: {}", condition.getParameter(), data.getClass().getSimpleName(), e.getMessage());
             return false;
         }
     }

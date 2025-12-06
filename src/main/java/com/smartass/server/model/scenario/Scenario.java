@@ -16,7 +16,7 @@ import java.util.List;
 public class Scenario {
     private String id;
     private String name;
-    private String triggerType; // e.g. "smoke", "motion"
+    private String triggerType;
+    private String triggerConditionId;
     private List<ScenarioAction> actions;
 }
-

@@ -16,10 +16,18 @@ public class ScenariosRegistry {
 
     @PostConstruct
     public void init() {
+        //actions
+
         ScenarioAction turnOffLight = ScenarioAction.builder()
                 .deviceTypePattern("light-*")
                 .command("set")
                 .value("false")
+                .build();
+
+        ScenarioAction turnOnLight = ScenarioAction.builder()
+                .deviceTypePattern("light-*")
+                .command("set")
+                .value("true")
                 .build();
 
         ScenarioAction openWindow = ScenarioAction.builder()
@@ -28,14 +36,55 @@ public class ScenariosRegistry {
                 .value("true")
                 .build();
 
+        // --- existing smoke scenario ---
+
         Scenario smokeScenario = Scenario.builder()
                 .id("sc-1")
                 .name("Smoke detected - open window & turn off lights")
                 .triggerType("smoke")
+                .triggerConditionId("smoke-alarmActive")
                 .actions(List.of(turnOffLight, openWindow))
                 .build();
 
         scenarios.add(smokeScenario);
+
+        // --- temperature: high -> open window  ---
+
+        Scenario tempHighScenario = Scenario.builder()
+                .id("sc-2")
+                .name("High temperature - open window")
+                .triggerType("temperature")
+                .triggerConditionId("temperature-high")
+                .actions(List.of(openWindow))
+                .build();
+
+        scenarios.add(tempHighScenario);
+
+        // --- motion detected -> turn on lights ---
+
+
+        Scenario motionScenario = Scenario.builder()
+                .id("sc-4")
+                .name("Motion detected - turn on lights")
+                .triggerType("motion")
+                .triggerConditionId("motion-motionDetected")
+                .actions(List.of(turnOnLight))
+                .build();
+
+        scenarios.add(motionScenario);
+
+        // --- energy high -> reduce load (turn off lights, set HVAC to eco) ---
+
+        Scenario energyHighScenario = Scenario.builder()
+                .id("sc-5")
+                .name("High energy consumption - reduce load")
+                .triggerType("energy")
+                .triggerConditionId("energy-currentPower-high")
+                .actions(List.of(turnOffLight))
+                .build();
+
+        scenarios.add(energyHighScenario);
+
     }
 
     public List<Scenario> findByTriggerType(String triggerType) {

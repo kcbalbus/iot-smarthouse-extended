@@ -13,9 +13,6 @@ public class AlertDTO {
     private AlertSeverity severity;
     private Long timestamp;
     private String description;
+    private String conditionId; // new: optional id of condition that triggered this alert
 
-
-    public String getType() {
-        return this.type;
-    }
 }
