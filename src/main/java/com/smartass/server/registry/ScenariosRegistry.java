@@ -1,5 +1,7 @@
-package com.smartass.server.service.scenario;
+package com.smartass.server.registry;
 
+import com.smartass.server.model.scenario.Scenario;
+import com.smartass.server.model.scenario.ScenarioAction;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;

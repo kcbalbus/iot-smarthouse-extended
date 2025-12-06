@@ -3,6 +3,7 @@ package com.smartass.server.service.scenario;
 import com.smartass.server.model.alert.AlertDTO;
 import com.smartass.server.model.command.DeviceCommandDTO;
 import com.smartass.server.model.device.DeviceData;
+import com.smartass.server.registry.ScenariosRegistry;
 import com.smartass.server.service.dispatch.DeviceCommandDispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
