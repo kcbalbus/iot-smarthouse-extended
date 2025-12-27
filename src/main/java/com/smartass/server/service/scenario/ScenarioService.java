@@ -1,10 +1,13 @@
 package com.smartass.server.service.scenario;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.smartass.server.model.alert.AlertDTO;
 import com.smartass.server.model.command.DeviceCommandDTO;
 import com.smartass.server.model.device.DeviceData;
 import com.smartass.server.registry.ScenariosRegistry;
 import com.smartass.server.service.dispatch.DeviceCommandDispatcher;
+import com.smartass.server.websocket.DeviceTelemetryWebSocketHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,10 +23,14 @@ public class ScenarioService {
 
     private final ScenariosRegistry registry;
     private final DeviceCommandDispatcher dispatcher;
+    private final DeviceTelemetryWebSocketHandler telemetryWebSocketHandler;
+    private final ObjectMapper objectMapper;
 
-    public ScenarioService(ScenariosRegistry registry, DeviceCommandDispatcher dispatcher) {
+    public ScenarioService(ScenariosRegistry registry, DeviceCommandDispatcher dispatcher, DeviceTelemetryWebSocketHandler telemetryWebSocketHandler, ObjectMapper objectMapper) {
         this.registry = registry;
         this.dispatcher = dispatcher;
+        this.telemetryWebSocketHandler = telemetryWebSocketHandler;
+        this.objectMapper = objectMapper;
     }
 
     public void executeForAlerts(List<AlertDTO> alerts, DeviceData triggeringData) {
@@ -57,7 +64,19 @@ public class ScenarioService {
                     }
                 }
 
-                log.info("Matched scenario '{}': {} actions", scenario.getName(), scenario.getActions() != null ? scenario.getActions().size() : 0);
+                log.info("Matched scenario '{}' : {} actions (scenarioTriggerType={})", scenario.getName(), scenario.getActions() != null ? scenario.getActions().size() : 0, scenario.getTriggerType());
+
+                try {
+                    long now = System.currentTimeMillis();
+                    ObjectNode scenarioNode = (ObjectNode) objectMapper.valueToTree(scenario);
+                    scenarioNode.put("timestamp", now);
+
+                    String scenarioJson = objectMapper.writeValueAsString(scenarioNode);
+                    telemetryWebSocketHandler.broadcastScenario(scenarioJson);
+                } catch (Exception e) {
+                    log.warn("Failed to broadcast scenario {}", scenario.getId(), e);
+                }
+
                 if (scenario.getActions() == null) return;
                 scenario.getActions().forEach(action -> {
                     String targetDeviceId = action.getDeviceId();

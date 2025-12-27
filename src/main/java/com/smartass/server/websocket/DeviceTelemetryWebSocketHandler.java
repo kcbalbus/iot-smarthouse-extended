@@ -43,4 +43,11 @@ public class DeviceTelemetryWebSocketHandler implements WebSocketHandler {
                 .subscribe();
     }
 
+    public void broadcastScenario(String jsonPayload) {
+        String wrapped = String.format("{\"type\":\"scenario\",\"payload\":%s}", jsonPayload);
+        Flux.fromIterable(sessions)
+                .flatMap(session -> session.send(Mono.just(session.textMessage(wrapped))))
+                .subscribe();
+    }
+
 }
