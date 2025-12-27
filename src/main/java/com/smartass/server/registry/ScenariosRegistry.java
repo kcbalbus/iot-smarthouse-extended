@@ -19,19 +19,19 @@ public class ScenariosRegistry {
         //actions
 
         ScenarioAction turnOffLight = ScenarioAction.builder()
-                .deviceTypePattern("light-*")
+                .deviceId("light-001")
                 .command("set")
                 .value("false")
                 .build();
 
         ScenarioAction turnOnLight = ScenarioAction.builder()
-                .deviceTypePattern("light-*")
+                .deviceId("light-001")
                 .command("set")
                 .value("true")
                 .build();
 
         ScenarioAction openWindow = ScenarioAction.builder()
-                .deviceTypePattern("window-actuator-*")
+                .deviceId("window-actuator-001")
                 .command("open")
                 .value("true")
                 .build();

@@ -15,7 +15,6 @@ import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 @Service
 public class ScenarioService {
@@ -68,7 +67,7 @@ public class ScenarioService {
 
                 try {
                     long now = System.currentTimeMillis();
-                    ObjectNode scenarioNode = (ObjectNode) objectMapper.valueToTree(scenario);
+                    ObjectNode scenarioNode = objectMapper.valueToTree(scenario);
                     scenarioNode.put("timestamp", now);
 
                     String scenarioJson = objectMapper.writeValueAsString(scenarioNode);
@@ -80,31 +79,6 @@ public class ScenarioService {
                 if (scenario.getActions() == null) return;
                 scenario.getActions().forEach(action -> {
                     String targetDeviceId = action.getDeviceId();
-
-                    if (targetDeviceId == null && action.getDeviceTypePattern() != null) {
-                        String pattern = action.getDeviceTypePattern();
-                        if (pattern.endsWith("*")) {
-                            String prefix = pattern.substring(0, pattern.length() - 1);
-                            if (triggeringData != null && triggeringData.getDeviceId() != null && triggeringData.getDeviceId().startsWith(prefix)) {
-                                targetDeviceId = triggeringData.getDeviceId();
-                            } else {
-                                targetDeviceId = prefix + "001";
-                            }
-                        } else {
-                            // regex style
-                            try {
-                                Pattern p = Pattern.compile(pattern);
-                                if (triggeringData != null && triggeringData.getDeviceId() != null && p.matcher(triggeringData.getDeviceId()).matches()) {
-                                    targetDeviceId = triggeringData.getDeviceId();
-                                } else {
-                                    // fallback
-                                    targetDeviceId = pattern;
-                                }
-                            } catch (Exception ex) {
-                                targetDeviceId = pattern;
-                            }
-                        }
-                    }
 
                     if (targetDeviceId == null) {
                         log.warn("Scenario action has no target device specified: {}", action);

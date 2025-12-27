@@ -5,16 +5,15 @@
     "triggerType": "smoke",
     "actions": [
       {
-        "deviceTypePattern": "light-*",
+        "deviceId": "light-001",
         "command": "set",
         "value": "false"
       },
       {
-        "deviceTypePattern": "window-actuator-*",
+        "deviceId": "window-actuator-001",
         "command": "open",
         "value": "true"
       }
     ]
   }
 ]
-

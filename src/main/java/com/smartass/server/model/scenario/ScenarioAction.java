@@ -13,8 +13,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ScenarioAction {
     private String deviceId;
-    private String deviceTypePattern;
     private String command;
     private String value;
 }
-
