@@ -19,13 +19,13 @@ public class ScenariosRegistry {
         //actions
 
         ScenarioAction turnOffLight = ScenarioAction.builder()
-                .deviceId("light-001")
+                .deviceId("light-actuator-001")
                 .command("set")
                 .value("false")
                 .build();
 
         ScenarioAction turnOnLight = ScenarioAction.builder()
-                .deviceId("light-001")
+                .deviceId("light-actuator-001")
                 .command("set")
                 .value("true")
                 .build();
