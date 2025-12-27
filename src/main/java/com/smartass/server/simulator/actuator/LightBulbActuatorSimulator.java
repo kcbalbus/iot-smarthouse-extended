@@ -10,6 +10,6 @@ import reactor.kafka.receiver.ReceiverOptions;
 public class LightBulbActuatorSimulator extends SimulatorActuatorBase {
 
     public LightBulbActuatorSimulator(ReceiverOptions<String, DeviceCommandDTO> baseReceiverOptions) {
-        super(baseReceiverOptions, "simulator-light-actuator-", "light-", "[ACTUATOR-LIGHT]");
+        super(baseReceiverOptions, "simulator-light-actuator-", "light-actuator-", "[ACTUATOR-LIGHT]");
     }
 }

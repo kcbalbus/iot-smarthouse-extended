@@ -10,7 +10,7 @@ import reactor.kafka.receiver.ReceiverOptions;
 public class EnergyActuatorSimulator extends SimulatorActuatorBase {
 
     public EnergyActuatorSimulator(ReceiverOptions<String, DeviceCommandDTO> baseReceiverOptions) {
-        super(baseReceiverOptions, "simulator-energy-actuator-", "energy-", "[ACTUATOR-ENERGY]");
+        super(baseReceiverOptions, "simulator-energy-actuator-", "energy-actuator-", "[ACTUATOR-ENERGY]");
     }
 }
 

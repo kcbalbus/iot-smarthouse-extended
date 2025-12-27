@@ -10,7 +10,7 @@ import reactor.kafka.receiver.ReceiverOptions;
 public class SmokeActuatorSimulator extends SimulatorActuatorBase {
 
     public SmokeActuatorSimulator(ReceiverOptions<String, DeviceCommandDTO> baseReceiverOptions) {
-        super(baseReceiverOptions, "simulator-smoke-actuator-", "smoke-", "[ACTUATOR-SMOKE]");
+        super(baseReceiverOptions, "simulator-smoke-actuator-", "smoke-actuator-", "[ACTUATOR-SMOKE]");
     }
 }
 

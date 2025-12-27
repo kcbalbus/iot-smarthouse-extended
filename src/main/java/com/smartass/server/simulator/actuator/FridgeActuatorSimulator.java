@@ -10,7 +10,7 @@ import reactor.kafka.receiver.ReceiverOptions;
 public class FridgeActuatorSimulator extends SimulatorActuatorBase {
 
     public FridgeActuatorSimulator(ReceiverOptions<String, DeviceCommandDTO> baseReceiverOptions) {
-        super(baseReceiverOptions, "simulator-fridge-actuator-", "fridge-", "[ACTUATOR-FRIDGE]");
+        super(baseReceiverOptions, "simulator-fridge-actuator-", "fridge-actuator-", "[ACTUATOR-FRIDGE]");
     }
 }
 

@@ -10,7 +10,7 @@ import reactor.kafka.receiver.ReceiverOptions;
 public class MotionActuatorSimulator extends SimulatorActuatorBase {
 
     public MotionActuatorSimulator(ReceiverOptions<String, DeviceCommandDTO> baseReceiverOptions) {
-        super(baseReceiverOptions, "simulator-motion-actuator-", "motion-", "[ACTUATOR-MOTION]");
+        super(baseReceiverOptions, "simulator-motion-actuator-", "motion-actuator-", "[ACTUATOR-MOTION]");
     }
 }
 
