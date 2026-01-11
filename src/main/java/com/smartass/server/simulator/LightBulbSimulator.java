@@ -17,7 +17,9 @@ public class LightBulbSimulator implements Simulator {
     private final KafkaDeviceDataProducerService kafkaProducerService;
     private boolean isOn = false;
     private int activeTime = 0;
-
+    private boolean motionDetected = false; // Flaga wykrycia ruchu
+    private int motionDuration = 0; // Czas trwania ruchu
+    private final int MAX_MOTION_DURATION = 20;
 
     public LightBulbSimulator(KafkaDeviceDataProducerService kafkaProducerService) {
         this.kafkaProducerService = kafkaProducerService;
@@ -32,12 +34,22 @@ public class LightBulbSimulator implements Simulator {
                     boolean isNighttime = (hour >= 18 || hour < 6);
                     double turnOnProbability = getTurnOnProbability(hour);
 
-                    if (!isOn) {
+                    if (motionDetected) {
+                        isOn = true; // Zapal światło po wykryciu ruchu
+                        motionDuration++;
+                        if (motionDuration >= MAX_MOTION_DURATION) {
+                            motionDetected = false; // Zakończ zdarzenie ruchu
+                            isOn = false; // Wyłącz światło
+                            motionDuration = 0;
+                        }
+                    }
+                    else if (!isOn) {
                         if (ThreadLocalRandom.current().nextDouble() < turnOnProbability) {
                             isOn = true;
                             activeTime = 0;
                         }
-                    } else {
+                    }
+                    else {
                         activeTime++;
 
                         boolean shouldTurnOff =
@@ -53,7 +65,6 @@ public class LightBulbSimulator implements Simulator {
                     int brightness = 0;
 
                     if (isOn) {
-
                         brightness = 90 + ThreadLocalRandom.current().nextInt(11);
                         brightness = Math.min(100, brightness);
 
