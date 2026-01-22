@@ -34,6 +34,7 @@ public class DeviceDataSimulatorService {
                 (simulator instanceof SmokeDetectorSimulator && simulatorProperties.getSmoke().isEnabled()) ||
                 (simulator instanceof EnergyMeterSimulator && simulatorProperties.getEnergy().isEnabled()) ||
                 (simulator instanceof MotionSensorSimulator && simulatorProperties.getMotion().isEnabled()) ||
-                (simulator instanceof FridgeTemperatureSensorSimulator && simulatorProperties.getFridge().isEnabled());
+                (simulator instanceof FridgeTemperatureSensorSimulator && simulatorProperties.getFridge().isEnabled()) ||
+                (simulator instanceof WindowSimulator && simulatorProperties.getWindow().isEnabled());
     }
 }

@@ -14,6 +14,7 @@ public class DeviceProcessingService {
             case "energy" -> handleEnergy((EnergyMeterData) data);
             case "motion" -> handleMotion((MotionSensorData) data);
             case "fridge" -> handleFridge((FridgeTemperatureSensorData) data);
+            case "window" -> handleWindow((WindowSensorData) data);
             default -> System.out.println("Unknown device type");
         }
     }
@@ -43,5 +44,9 @@ public class DeviceProcessingService {
     private void handleFridge(FridgeTemperatureSensorData data) {
         System.out.println("[Fridge] Door: " + (data.getDoorOpen() ? "Open" : "Close") + ", temperature: " + data.getTemperature());
 
+    }
+
+    private void handleWindow(WindowSensorData data) {
+        System.out.println("[Window] State: " + (data.getIsOpen() != null && data.getIsOpen() ? "Open" : "Closed"));
     }
 }

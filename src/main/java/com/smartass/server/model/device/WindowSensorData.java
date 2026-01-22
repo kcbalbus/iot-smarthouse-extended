@@ -14,6 +14,5 @@ public class WindowSensorData implements DeviceData {
     private String authKey;
     private String type;
     private Long timestamp;
-    private Boolean open;
+    private Boolean isOpen;
 }
-

@@ -19,6 +19,7 @@ public class SimulatorProperties {
     private Energy energy = new Energy();
     private Motion motion = new Motion();
     private Fridge fridge = new Fridge();
+    private Window window = new Window();
 
     private int retries;
     private Duration delay;
@@ -56,6 +57,12 @@ public class SimulatorProperties {
     @Getter
     @Setter
     public static class Fridge {
+        private boolean enabled;
+    }
+
+    @Getter
+    @Setter
+    public static class Window {
         private boolean enabled;
     }
 }

@@ -17,6 +17,7 @@ public class DeviceDeserializerRegistry {
         registry.put("energy", EnergyMeterData.class);
         registry.put("motion", MotionSensorData.class);
         registry.put("fridge", FridgeTemperatureSensorData.class);
+        registry.put("window", WindowSensorData.class);
     }
 
     public Class<? extends DeviceData> resolve(String type) {
