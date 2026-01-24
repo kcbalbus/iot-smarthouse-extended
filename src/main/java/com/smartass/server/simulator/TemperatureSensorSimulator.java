@@ -16,14 +16,14 @@ public class TemperatureSensorSimulator implements Simulator {
 
     private final KafkaDeviceDataProducerService kafkaProducerService;
     private final Random random = new Random();
-    private double baseTemperature = 21.0;
+    private double baseTemperature = 20.0;
     private double temperatureDrift = 0.02;
-    private double anomalyChance = 0.05;
+    private double anomalyChance = 0.1;
     private boolean windowOpen = false;
-    private int windowOpenTime = 0;
     private boolean heatingUp = false;
+    private boolean temperatureSpike = false;
+    private final double criticalTemperature = 23.0;
     private double simulatedTemperature = baseTemperature;
-    private int MAX_Window_Time = 20;
 
     public TemperatureSensorSimulator(KafkaDeviceDataProducerService kafkaProducerService) {
         this.kafkaProducerService = kafkaProducerService;
@@ -39,30 +39,31 @@ public class TemperatureSensorSimulator implements Simulator {
                     double temperatureVariation = Math.sin(hourFactor / 24 * Math.PI * 2-Math.PI/2) * 2;
                     double targetTemperature = baseTemperature + (Math.random() - 0.5) * temperatureDrift + temperatureVariation;
 
-                    if (!windowOpen && !heatingUp && Math.random() < anomalyChance) {
-                        windowOpen = true;
-                        windowOpenTime = 0;
-                        MAX_Window_Time = 20 + random.nextInt(60);
-                        heatingUp = false;
+                    if (Math.random() < anomalyChance && !temperatureSpike && !windowOpen && !heatingUp) {
+                        temperatureSpike = true;
                     }
-                    else if (!windowOpen && !heatingUp) {
-                        simulatedTemperature = targetTemperature;
+
+                    if (temperatureSpike) {
+                        simulatedTemperature += 0.5 + (Math.random() - 0.5) / 10;
+                        if (simulatedTemperature >= criticalTemperature) {
+                            temperatureSpike = false;
+                        }
                     }
                     else if (windowOpen) {
-                        simulatedTemperature -= 0.05 + (Math.random() - 0.5)/100;
-                        windowOpenTime++;
-                        if (windowOpenTime >= MAX_Window_Time){
+                        simulatedTemperature -= 0.05 + (Math.random() - 0.5) / 100;
+                        if (simulatedTemperature <= targetTemperature - 1) {
                             windowOpen = false;
                             heatingUp = true;
                         }
-
                     }
-
                     else if (heatingUp) {
-                        simulatedTemperature += 0.025 + (Math.random() - 0.5)/100;
+                        simulatedTemperature += 0.025 + (Math.random() - 0.5) / 100;
                         if (simulatedTemperature >= targetTemperature) {
                             heatingUp = false;
                         }
+                    }
+                    else {
+                        simulatedTemperature = targetTemperature;
                     }
 
                     double simulatedHumidity = (55*baseTemperature)/(6.1078 * Math.pow(10, (7.5 * simulatedTemperature) / (237.3 + simulatedTemperature)))+Math.random();

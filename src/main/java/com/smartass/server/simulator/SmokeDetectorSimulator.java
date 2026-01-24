@@ -31,6 +31,7 @@ public class SmokeDetectorSimulator implements Simulator {
     private int maxFireDuration = 120;
     private int maxCigaretteDuration = 30;
     private boolean isEventEnding = false;
+    private boolean windowOpen = false;
 
     public SmokeDetectorSimulator(KafkaDeviceDataProducerService kafkaProducerService) {
         this.kafkaProducerService = kafkaProducerService;
@@ -50,42 +51,34 @@ public class SmokeDetectorSimulator implements Simulator {
                             fireDetected = true;
                             smokeEventDuration = 0;
                             maxFireDuration = 30 + random.nextInt(30);
-                        }
-                        else if (chance < cigaretteChance) {
+                        } else if (chance < cigaretteChance) {
                             cigaretteDetected = true;
                             smokeEventDuration = 0;
                             maxCigaretteDuration = 7 + random.nextInt(7);
-                        }
-                        else {
+                        } else {
                             smokeLevel = random.nextDouble() * 0.1;
                         }
-                    }
-                    else {
+                    } else {
                         smokeEventDuration++;
 
                         if (fireDetected) {
                             if (smokeEventDuration <= maxFireDuration) {
-                                smokeLevel = Math.min(0.9 + random.nextDouble()*0.1 , smokeLevel + 0.07 + random.nextDouble() * 0.01);
-                            }
-                            else if (smokeEventDuration > maxFireDuration && smokeLevel > 0.1) {
-                                smokeLevel = Math.max(0.0 + random.nextDouble()*0.1, smokeLevel - (0.03 + random.nextDouble() * 0.01));
+                                smokeLevel = Math.min(0.9 + random.nextDouble() * 0.1, smokeLevel + 0.07 + random.nextDouble() * 0.01);
+                            } else if (smokeEventDuration > maxFireDuration && smokeLevel > 0.1) {
+                                smokeLevel = Math.max(0.0 + random.nextDouble() * 0.1, smokeLevel - (0.03 + random.nextDouble() * 0.01));
                                 isEventEnding = true;
-                            }
-                            else {
+                            } else {
                                 fireDetected = false;
                                 isEventEnding = false;
                                 smokeLevel = random.nextDouble() * 0.1;
                             }
-                        }
-                        else if (cigaretteDetected) {
+                        } else if (cigaretteDetected) {
                             if (smokeEventDuration <= maxCigaretteDuration) {
-                                smokeLevel = Math.min(0.5 + random.nextDouble()*0.1, smokeLevel + 0.05 + random.nextDouble() * 0.01);
-                            }
-                            else if (smokeEventDuration > maxCigaretteDuration && smokeLevel > 0.1) {
-                                smokeLevel = Math.max(0.0 + random.nextDouble()*0.1, smokeLevel - (0.03 + random.nextDouble() * 0.01));
+                                smokeLevel = Math.min(0.5 + random.nextDouble() * 0.1, smokeLevel + 0.05 + random.nextDouble() * 0.01);
+                            } else if (smokeEventDuration > maxCigaretteDuration && smokeLevel > 0.1) {
+                                smokeLevel = Math.max(0.0 + random.nextDouble() * 0.1, smokeLevel - (0.03 + random.nextDouble() * 0.01));
                                 isEventEnding = true;
-                            }
-                            else {
+                            } else {
                                 cigaretteDetected = false;
                                 isEventEnding = false;
                                 smokeLevel = random.nextDouble() * 0.1;
@@ -95,11 +88,16 @@ public class SmokeDetectorSimulator implements Simulator {
                         if (smokeLevel > 0.2) {
                             smokeDetected = true;
                             battery -= batteryDrain * (1 + random.nextDouble());
-                        }
-                        else {
+                            windowOpen = true; // Otwórz okno po wykryciu dymu
+                        } else {
                             smokeDetected = false;
                             battery -= batteryDrain * (1 + random.nextDouble() / 10);
+                            windowOpen = false; // Zamknij okno, gdy dym zniknie
                         }
+                    }
+
+                    if (windowOpen) {
+                        smokeLevel = Math.max(0.0, smokeLevel - (0.02 + random.nextDouble() * 0.01)); // Powolne zmniejszanie poziomu dymu
                     }
 
                     if (battery <= 0) {
