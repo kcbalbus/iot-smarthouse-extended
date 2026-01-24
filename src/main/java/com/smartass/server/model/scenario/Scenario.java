@@ -19,4 +19,6 @@ public class Scenario {
     private String triggerType;
     private String triggerConditionId;
     private List<ScenarioAction> actions;
+    @Builder.Default
+    private boolean enabled = true; // scenarios are enabled by default
 }

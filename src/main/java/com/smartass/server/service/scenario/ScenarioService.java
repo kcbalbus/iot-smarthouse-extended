@@ -56,6 +56,16 @@ public class ScenarioService {
             log.info("Looking up scenarios for trigger type='{}' (alert={})", type, alert != null ? alert.getDescription() : "<none>");
 
             registry.findByTriggerType(type).forEach(scenario -> {
+                // skip disabled scenarios
+                try {
+                    if (!scenario.isEnabled()) {
+                        log.debug("Skipping disabled scenario '{}'", scenario.getId());
+                        return;
+                    }
+                } catch (Exception ex) {
+                    // if scenario doesn't have enabled flag for any reason, continue (backwards compatibility)
+                }
+
                 if (scenario.getTriggerConditionId() != null && alert != null) {
                     if (alert.getConditionId() == null || !alert.getConditionId().equals(scenario.getTriggerConditionId())) {
                         log.debug("Skipping scenario '{}' because triggerConditionId '{}' doesn't match alert.conditionId '{}'", scenario.getId(), scenario.getTriggerConditionId(), alert.getConditionId());

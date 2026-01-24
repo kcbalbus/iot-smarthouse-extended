@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -91,5 +92,23 @@ public class ScenariosRegistry {
         return scenarios.stream()
                 .filter(s -> s.getTriggerType() != null && s.getTriggerType().equalsIgnoreCase(triggerType))
                 .collect(Collectors.toList());
+    }
+
+
+    public List<Scenario> getAllScenarios() {
+        return new ArrayList<>(scenarios);
+    }
+
+    public Optional<Scenario> findById(String id) {
+        if (id == null) return Optional.empty();
+        return scenarios.stream().filter(s -> id.equals(s.getId())).findFirst();
+    }
+
+    public boolean setEnabled(String id, boolean enabled) {
+        Optional<Scenario> opt = findById(id);
+        if (opt.isEmpty()) return false;
+        Scenario s = opt.get();
+        s.setEnabled(enabled);
+        return true;
     }
 }
