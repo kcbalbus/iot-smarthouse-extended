@@ -25,12 +25,12 @@ public class ConditionRegistry {
 
         //temperature
         conditions.put("temperature-high", new AlertCondition("temperature", "temperature",
-                AlertSeverity.WARNING, ComparisonOperator.GREATER_THAN, "17",
+                AlertSeverity.WARNING, ComparisonOperator.GREATER_THAN, "21",
                 "Temperature is too high!"));
 
         conditions.put("temperature-temperature-critical", new AlertCondition(
                         "temperature", "temperature",
-                        AlertSeverity.CRITICAL, ComparisonOperator.GREATER_THAN, "23",
+                        AlertSeverity.CRITICAL, ComparisonOperator.GREATER_THAN, "25",
                         "Critical temperature! Immediate action required."));
 
         conditions.put("temperature-temperature-low", new AlertCondition(

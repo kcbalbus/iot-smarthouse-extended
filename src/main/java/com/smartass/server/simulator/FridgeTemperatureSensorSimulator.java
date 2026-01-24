@@ -1,18 +1,22 @@
 package com.smartass.server.simulator;
 
 import com.smartass.server.kafka.KafkaDeviceDataProducerService;
+import com.smartass.server.model.command.DeviceCommandDTO;
 import com.smartass.server.model.device.FridgeTemperatureSensorData;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.event.EventListener;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
 @Profile("simulator")
-public class FridgeTemperatureSensorSimulator implements Simulator {
+public class FridgeTemperatureSensorSimulator implements Simulator, ActuatorUpdatable {
 
     private final KafkaDeviceDataProducerService kafkaProducerService;
     private final Random random = new Random();
@@ -22,7 +26,7 @@ public class FridgeTemperatureSensorSimulator implements Simulator {
     private final double doorOpenChance = 0.01;
     private final double powerOutageChance = 0.00005;
 
-    private boolean doorOpen = false;
+    private final AtomicBoolean doorOpen = new AtomicBoolean(false);
     private int doorOpenTime = 0;
     private boolean powerOutage = false;
     private int powerOutageTime = 0;
@@ -35,9 +39,16 @@ public class FridgeTemperatureSensorSimulator implements Simulator {
 
     private int MAX_DOOR_OPEN_TIME = 10;
     private int MAX_POWER_OUTAGE_TIME = 40;
+    private final SimulatorRegistry simulatorRegistry;
 
-    public FridgeTemperatureSensorSimulator(KafkaDeviceDataProducerService kafkaProducerService) {
+    public FridgeTemperatureSensorSimulator(KafkaDeviceDataProducerService kafkaProducerService, SimulatorRegistry simulatorRegistry) {
         this.kafkaProducerService = kafkaProducerService;
+        this.simulatorRegistry = simulatorRegistry;
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        simulatorRegistry.register("fridge-001", this);
     }
 
     @Override
@@ -49,9 +60,9 @@ public class FridgeTemperatureSensorSimulator implements Simulator {
                     double compressorCycle = (timestamp / (1000.0 * 60 * 20)) % 1;
                     double temperatureVariation = Math.sin(compressorCycle * Math.PI * 2);
 
-                    if (!powerOutage && !doorOpen && !cooling) {
+                    if (!powerOutage && !doorOpen.get() && !cooling) {
                         if (random.nextDouble() < doorOpenChance) {
-                            doorOpen = true;
+                            doorOpen.set(true);
                             doorOpenTime = 0;
                             MAX_DOOR_OPEN_TIME = MAX_DOOR_OPEN_TIME + random.nextInt(MAX_DOOR_OPEN_TIME);
                         }
@@ -65,12 +76,12 @@ public class FridgeTemperatureSensorSimulator implements Simulator {
                         }
                     }
 
-                    else if (doorOpen) {
+                    else if (doorOpen.get()) {
                         simulatedTemperature += DOOR_OPEN_TEMP_INCREASE + (random.nextDouble() - 0.5) * 0.05;
                         doorOpenTime++;
 
                         if (doorOpenTime >= MAX_DOOR_OPEN_TIME || random.nextDouble() < 0.1) {
-                            doorOpen = false;
+                            doorOpen.set(false);
                             cooling = true;
                         }
                     }
@@ -98,12 +109,39 @@ public class FridgeTemperatureSensorSimulator implements Simulator {
                             .type("fridge")
                             .timestamp(timestamp)
                             .temperature(simulatedTemperature)
-                            .doorOpen(doorOpen)
+                            .doorOpen(doorOpen.get())
                             .authKey("key997")
                             .build();
 
                     return kafkaProducerService.send(data);
                 })
                 .subscribe();
+    }
+
+    @Override
+    public boolean applyCommand(DeviceCommandDTO command) {
+        if (command == null) return false;
+        String cmd = command.getCommand();
+        String value = command.getValue();
+        if (cmd == null) return false;
+
+        if ("set".equalsIgnoreCase(cmd) || "door".equalsIgnoreCase(cmd) || "setDoor".equalsIgnoreCase(cmd)) {
+            if (value != null && ("true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value))) {
+                boolean v = Boolean.parseBoolean(value);
+                doorOpen.set(v);
+                // emit immediate telemetry
+                FridgeTemperatureSensorData data = FridgeTemperatureSensorData.builder()
+                        .deviceId("fridge-001")
+                        .type("fridge")
+                        .timestamp(Instant.now().toEpochMilli())
+                        .temperature(simulatedTemperature)
+                        .doorOpen(doorOpen.get())
+                        .authKey("key997")
+                        .build();
+                kafkaProducerService.send(data).subscribe();
+                return true;
+            }
+        }
+        return false;
     }
 }

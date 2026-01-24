@@ -1,6 +1,7 @@
 package com.smartass.server.simulator.actuator;
 
 import com.smartass.server.model.command.DeviceCommandDTO;
+import com.smartass.server.simulator.SimulatorRegistry;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import reactor.kafka.receiver.ReceiverOptions;
@@ -9,7 +10,7 @@ import reactor.kafka.receiver.ReceiverOptions;
 @Profile("simulator")
 public class LightBulbActuatorSimulator extends SimulatorActuatorBase {
 
-    public LightBulbActuatorSimulator(ReceiverOptions<String, DeviceCommandDTO> baseReceiverOptions) {
-        super(baseReceiverOptions, "simulator-light-actuator-", "light-actuator-", "[ACTUATOR-LIGHT]");
+    public LightBulbActuatorSimulator(ReceiverOptions<String, DeviceCommandDTO> baseReceiverOptions, SimulatorRegistry simulatorRegistry) {
+        super(baseReceiverOptions, "simulator-light-actuator-", "light-actuator-", "[ACTUATOR-LIGHT]", simulatorRegistry);
     }
 }

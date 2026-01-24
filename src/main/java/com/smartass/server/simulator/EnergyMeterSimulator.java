@@ -1,19 +1,22 @@
 package com.smartass.server.simulator;
 
 import com.smartass.server.kafka.KafkaDeviceDataProducerService;
+import com.smartass.server.model.command.DeviceCommandDTO;
 import com.smartass.server.model.device.EnergyMeterData;
-import com.smartass.server.simulator.actuator.EnergyActuatorSimulator;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.event.EventListener;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
 @Profile("simulator")
-public class EnergyMeterSimulator implements Simulator {
+public class EnergyMeterSimulator implements Simulator, ActuatorUpdatable {
 
     private final KafkaDeviceDataProducerService kafkaProducerService;
     private final Random random = new Random();
@@ -21,14 +24,21 @@ public class EnergyMeterSimulator implements Simulator {
     private double totalEnergy;
     private int currentState;
     private int stateDuration = 0;
-    private boolean isSocketOn = true;
+    private final AtomicBoolean isSocketOn = new AtomicBoolean(true);
     private int reconnectDelay = 0;
     private int reconnectCounter = 0;
+    private final SimulatorRegistry simulatorRegistry;
 
-    public EnergyMeterSimulator(KafkaDeviceDataProducerService kafkaProducerService, EnergyActuatorSimulator energyActuatorSimulator) {
+    public EnergyMeterSimulator(KafkaDeviceDataProducerService kafkaProducerService, SimulatorRegistry simulatorRegistry) {
         this.kafkaProducerService = kafkaProducerService;
         this.currentPower = 20.0 + random.nextDouble() * 10;
         this.totalEnergy = 0.0;
+        this.simulatorRegistry = simulatorRegistry;
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        simulatorRegistry.register("energy-001", this);
     }
 
     @Override
@@ -36,16 +46,16 @@ public class EnergyMeterSimulator implements Simulator {
         Flux.interval(Duration.ofSeconds(5))
                 .flatMap(tick -> {
                     long timestamp = Instant.now().toEpochMilli();
-                    if (!isSocketOn) {
+                    if (!isSocketOn.get()) {
                         if (reconnectCounter > 0) {
                             reconnectCounter--;
                         }
                         else {
-                            isSocketOn = true;
+                            isSocketOn.set(true);
                         }
                     }
 
-                    if (isSocketOn) {
+                    if (isSocketOn.get()) {
                         stateDuration++;
                         if (stateDuration >= 60 + random.nextInt(60)) {
                             currentState = random.nextInt(4);
@@ -69,7 +79,7 @@ public class EnergyMeterSimulator implements Simulator {
                     }
                     else {
                         currentPower = 0.0;
-                        if (!isSocketOn && reconnectCounter == 0) {
+                        if (!isSocketOn.get() && reconnectCounter == 0) {
                             reconnectDelay = 5 + random.nextInt(10); // Losowy czas 5-15 sekund
                             reconnectCounter = reconnectDelay;
                         }
@@ -90,5 +100,22 @@ public class EnergyMeterSimulator implements Simulator {
                     return kafkaProducerService.send(data);
                 })
                 .subscribe();
+    }
+
+    @Override
+    public boolean applyCommand(DeviceCommandDTO command) {
+        if (command == null) return false;
+        String cmd = command.getCommand();
+        String value = command.getValue();
+        if (cmd == null) return false;
+
+        if ("set".equalsIgnoreCase(cmd) || "on".equalsIgnoreCase(cmd) || "socket".equalsIgnoreCase(cmd)) {
+            if (value != null && ("true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value))) {
+                boolean v = Boolean.parseBoolean(value);
+                isSocketOn.set(v);
+                return true;
+            }
+        }
+        return false;
     }
 }

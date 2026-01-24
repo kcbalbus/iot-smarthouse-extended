@@ -1,22 +1,26 @@
 package com.smartass.server.simulator;
 
 import com.smartass.server.kafka.KafkaDeviceDataProducerService;
+import com.smartass.server.model.command.DeviceCommandDTO;
 import com.smartass.server.model.device.SmokeDetectorData;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.event.EventListener;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
 @Profile("simulator")
-public class SmokeDetectorSimulator implements Simulator {
+public class SmokeDetectorSimulator implements Simulator, ActuatorUpdatable {
 
     private final KafkaDeviceDataProducerService kafkaProducerService;
     private final Random random = new Random();
-    private boolean smokeDetected = false;
+    private final AtomicBoolean smokeDetected = new AtomicBoolean(false);
     private boolean cigaretteDetected = false;
     private boolean fireDetected = false;
     private double battery;
@@ -31,11 +35,18 @@ public class SmokeDetectorSimulator implements Simulator {
     private int maxFireDuration = 120;
     private int maxCigaretteDuration = 30;
     private boolean isEventEnding = false;
-    private boolean windowOpen = false;
+    private final AtomicBoolean windowOpen = new AtomicBoolean(false);
+    private final SimulatorRegistry simulatorRegistry;
 
-    public SmokeDetectorSimulator(KafkaDeviceDataProducerService kafkaProducerService) {
+    public SmokeDetectorSimulator(KafkaDeviceDataProducerService kafkaProducerService, SimulatorRegistry simulatorRegistry) {
         this.kafkaProducerService = kafkaProducerService;
         this.battery = 80.0 + (new Random().nextDouble() * 20);
+        this.simulatorRegistry = simulatorRegistry;
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        simulatorRegistry.register("smoke-001", this);
     }
 
     @Override
@@ -44,7 +55,7 @@ public class SmokeDetectorSimulator implements Simulator {
                 .flatMap(tick -> {
                     long timestamp = Instant.now().toEpochMilli();
 
-                    if (!smokeDetected && !fireDetected && !cigaretteDetected && !isEventEnding) {
+                    if (!smokeDetected.get() && !fireDetected && !cigaretteDetected && !isEventEnding) {
                         chance = Math.random();
                         battery -= batteryDrain * (1 + random.nextDouble() / 10);
                         if (chance < fireChance) {
@@ -86,17 +97,17 @@ public class SmokeDetectorSimulator implements Simulator {
                         }
 
                         if (smokeLevel > 0.2) {
-                            smokeDetected = true;
+                            smokeDetected.set(true);
                             battery -= batteryDrain * (1 + random.nextDouble());
-                            windowOpen = true; // Otwórz okno po wykryciu dymu
+                            windowOpen.set(true); // Otwórz okno po wykryciu dymu
                         } else {
-                            smokeDetected = false;
+                            smokeDetected.set(false);
                             battery -= batteryDrain * (1 + random.nextDouble() / 10);
-                            windowOpen = false; // Zamknij okno, gdy dym zniknie
+                            windowOpen.set(false); // Zamknij okno, gdy dym zniknie
                         }
                     }
 
-                    if (windowOpen) {
+                    if (windowOpen.get()) {
                         smokeLevel = Math.max(0.0, smokeLevel - (0.02 + random.nextDouble() * 0.01)); // Powolne zmniejszanie poziomu dymu
                     }
 
@@ -105,7 +116,7 @@ public class SmokeDetectorSimulator implements Simulator {
                             batteryEventDurationEND = 120 + random.nextInt(120);
                         }
                         smokeLevel = Double.NaN;
-                        smokeDetected = false;
+                        smokeDetected.set(false);
                         fireDetected = false;
                         cigaretteDetected = false;
                         isEventEnding = false;
@@ -124,7 +135,7 @@ public class SmokeDetectorSimulator implements Simulator {
                             .type("smoke")
                             .timestamp(timestamp)
                             .smokeLevel(smokeLevel)
-                            .alarmActive(smokeDetected)
+                            .alarmActive(smokeDetected.get())
                             .batteryLevel(battery)
                             .authKey("key835")
                             .build();
@@ -132,5 +143,23 @@ public class SmokeDetectorSimulator implements Simulator {
                     return kafkaProducerService.send(data);
                 })
                 .subscribe();
+    }
+
+    @Override
+    public boolean applyCommand(DeviceCommandDTO command) {
+        if (command == null) return false;
+        String cmd = command.getCommand();
+        String value = command.getValue();
+        if (cmd == null) return false;
+
+        if ("set".equalsIgnoreCase(cmd) || "alarm".equalsIgnoreCase(cmd) || "setAlarm".equalsIgnoreCase(cmd)) {
+            if (value != null && ("true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value))) {
+                boolean v = Boolean.parseBoolean(value);
+                smokeDetected.set(v);
+
+                return true;
+            }
+        }
+        return false;
     }
 }
